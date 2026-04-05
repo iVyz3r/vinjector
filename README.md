@@ -1,4 +1,7 @@
 # vinjector
+![License](https://img.shields.io/github/license/iVyz3r/vinjector)
+![Stars](https://img.shields.io/github/stars/iVyz3r/vinjector)
+![Topics](https://img.shields.io/github/topics/iVyz3r/vinjector)
 
 A powerful and flexible process injector with a modern ImGui-based user interface. This project provides a robust solution for process injection with DirectX 9 integration.
 
