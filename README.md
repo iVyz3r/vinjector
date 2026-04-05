@@ -1,4 +1,5 @@
-# vinjector
+# UWP DLL Injector
+
 <p align="center">
   <img src="https://img.shields.io/github/license/iVyz3r/aegledll" alt="License" />
   <img src="https://img.shields.io/github/stars/iVyz3r/aegledll" alt="Stars" />
@@ -7,11 +8,16 @@
   <img src="https://img.shields.io/github/topics/iVyz3r/aegledll?label=topics" alt="Topics" />
 </p>
 
-A powerful and flexible process injector with a modern ImGui-based user interface. This project provides a robust solution for process injection with DirectX 9 integration.
+A powerful DLL injector specifically designed for Universal Windows Platform (UWP) applications, featuring a modern ImGui-based user interface. This tool allows safe injection and management of DLLs into UWP processes with advanced monitoring capabilities.
 
 ## Features
 
-- **Process Injection**: Inject code and libraries into running processes
+- **UWP DLL Injection**: Specialized injection for Universal Windows Platform applications
+- **Process Selection**: Interactive window to browse and select running processes
+- **Module Management**: View and manage loaded DLLs in selected processes
+- **Safe DLL Unloading**: Securely unload DLLs without crashing the target process
+- **Auto-Detection**: Automatically detects terminated processes and new processes
+- **Real-Time Updates**: Process list updates automatically when new processes start
 - **Modern UI**: Built with ImGui for an intuitive graphical interface
 - **DirectX 9 Support**: Full compatibility with DirectX 9 rendering pipeline
 - **Process Monitoring**: Monitor and check process status in real-time
@@ -24,125 +30,119 @@ A powerful and flexible process injector with a modern ImGui-based user interfac
 git clone https://github.com/iVyz3r/vinjector.git
 cd vinjector
 
-# Build with CMake
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+# Build with PowerShell script
+.\build.ps1
 
 # Run the application
-./build/bin/vinjector.exe
+.\dist\UWP_Injector.exe
 ```
 
 For detailed build instructions, see [Building](#building) section below.
 
 ## Requirements
 
-- **Operating System**: Windows 7 or later
-- **Build System**: CMake 3.20+ (Recommended) or Visual Studio 2017+
-- **Development Environment**: Visual Studio 2017, MinGW64, or Clang-CL
+- **Operating System**: Windows 10 or later
+- **Compiler**: MinGW-w64 GCC (included in MSYS2 or standalone)
 - **Dependencies**:
-  - DirectX 9 SDK (Windows 10 SDK includes this)
+  - DirectX 9 SDK (included in Windows SDK)
   - Windows SDK
   - ImGui framework (included in repository)
 
 ## Project Structure
 
 ```
-├── CMakeLists.txt           # CMake build configuration (recommended)
-├── Main.cpp                 # Application entry point
-├── app.manifest             # Application manifest configuration
+├── build.ps1                # PowerShell build script
+├── Main.cpp                 # Application entry point with ImGui interface
+├── app.manifest             # Application manifest for UWP permissions
 ├── resources.rc             # Resource file for application metadata
-├── build.ps1                # Alternative PowerShell build script
 ├── ImGui/                   # ImGui framework and backends
 │   ├── imgui.*              # Core ImGui headers and implementations
 │   ├── imconfig.h           # ImGui configuration
 │   └── backend/             # Platform-specific backends
 │       ├── imgui_impl_dx9.*      # DirectX 9 implementation
 │       └── imgui_impl_win32.*    # Windows implementation
-├── Inject/                  # Injection mechanism module
+├── Inject/                  # UWP injection mechanism module
 │   ├── Inject.cpp
 │   └── Inject.hpp
-└── ProcessCheck/            # Process monitoring module
-    ├── ProcessCheck.cpp
-    └── ProcessCheck.hpp
+├── ProcessCheck/            # Process monitoring and module management
+│   ├── ProcessCheck.cpp
+│   └── ProcessCheck.hpp
+├── manifest/                # Application manifest files
+├── obj/                     # Build object files
+└── dist/                    # Output directory for compiled executable
 ```
 
 ## Building
 
-### Using CMake (Recommended)
+### Using PowerShell Build Script (Recommended)
 
-The project uses CMake for cross-platform compilation support.
+The project includes a PowerShell script for easy compilation using MinGW-w64 GCC.
 
 #### Prerequisites
 
-- **CMake 3.20+**
-- **Visual Studio 2017+** (or MinGW64 / Clang-CL)
-- **DirectX 9 SDK** (or Windows 10 SDK which includes DirectX 9)
-- **Windows 10 or later**
+- **MinGW-w64 GCC** (add to PATH or use MSYS2)
+- **Windows 10 SDK** (for DirectX 9 headers)
+- **PowerShell** (included in Windows)
 
 #### Build Steps
 
-1. **Clone the repository** and navigate to the project directory:
-   ```bash
-   git clone https://github.com/iVyz3r/vinjector.git
-   cd vinjector
+1. **Ensure MinGW-w64 is installed** and `gcc` is in your PATH.
+
+2. **Run the build script**:
+   ```powershell
+   .\build.ps1
    ```
 
-2. **Configure the build**:
-   ```bash
-   cmake -B build -DCMAKE_BUILD_TYPE=Release
-   ```
+3. The compiled executable will be in `dist\UWP_Injector.exe`
 
-3. **Build the executable**:
-   ```bash
-   cmake --build build --config Release
-   ```
+### Manual Build
 
-4. The compiled executable will be in `build/bin/vinjector.exe`
-
-#### CMake Build Options
+You can also build manually using GCC:
 
 ```bash
-# Enable/disable DirectX 9 support (enabled by default)
-cmake -B build -DENABLE_DX9=ON
-
-# Use static runtime linking
-cmake -B build -DUSE_STATIC_RUNTIME=ON
-
-# Strip debug symbols from binary (reduces file size)
-cmake -B build -DSTRIP_BINARY=ON
+g++ -std=c++17 -o dist/UWP_Injector.exe Main.cpp ProcessCheck/ProcessCheck.cpp Inject/Inject.cpp ImGui/*.cpp ImGui/backend/*.cpp -lgdi32 -ld3d9 -lpsapi -lkernel32 -luser32 -lshell32 -lcomdlg32 -mwindows -static-libgcc -static-libstdc++
 ```
 
-### Alternative: PowerShell Build Script
+### Alternative: Visual Studio
 
-For quick builds without CMake setup, use the PowerShell script:
-
-```powershell
-.\build.ps1
-```
-
-### Manual Build with Visual Studio
-
-You can also build using Visual Studio directly:
 1. Open Visual Studio 2017 or later
-2. Create a new CMake project from the vinjector directory
-3. Configure the build and run
+2. Create a new C++ project
+3. Add all source files from the project
+4. Configure include directories for ImGui and Windows SDK
+5. Build the project
 
 ## Usage
 
-1. Run the application executable
-2. Use the ImGui interface to select target processes
-3. Configure injection parameters
-4. Initiate the injection process
-5. Monitor status through the real-time interface
+1. **Run the application**: Execute `UWP_Injector.exe` (requires administrator privileges)
+
+2. **Select a Process**:
+   - Click "Select Process" to open the process selection window
+   - Browse the list of running processes
+   - Use the search box to filter processes by name
+   - Select a target UWP process and click to choose it
+
+3. **Manage Modules** (Optional):
+   - Click "Show Modules" to view loaded DLLs in the selected process
+   - Right-click on any DLL to unload it safely
+   - Use "Open Location" to navigate to the DLL file
+
+4. **Inject DLL**:
+   - Click "Browse" to select a DLL file to inject
+   - Click "Inject DLL" to perform the injection
+   - Monitor the status message for success/failure
+
+5. **Auto-Detection Features**:
+   - The injector automatically detects if the selected process terminates
+   - The process list updates automatically when new processes start (while selection window is open)
 
 ## Architecture
 
 ### Main Components
 
-- **Inject Module**: Handles the core injection logic and payload delivery
-- **ProcessCheck Module**: Monitors and validates process status
-- **ImGui Frontend**: Provides user interface and event handling
-- **DirectX 9 Integration**: Enables rendering through DirectX 9
+- **Inject Module**: Handles UWP-specific DLL injection with permission management
+- **ProcessCheck Module**: Monitors processes, enumerates modules, and performs safe DLL unloading
+- **ImGui Frontend**: Provides user interface with process selection, module management, and injection controls
+- **DirectX 9 Integration**: Enables rendering through DirectX 9 for the GUI
 
 ## License
 

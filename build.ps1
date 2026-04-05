@@ -28,7 +28,7 @@ function Write-Log([string]$Msg, [string]$Type = "Info") {
 }
 
 Clear-Host
-Write-Log "Starting compilation..." "Info"
+Write-Log "Starting compilation of $ProjectName..." "Info"
 
 # Crear directorios base
 if (!(Test-Path $BinDir)) { New-Item -ItemType Directory -Path $BinDir | Out-Null }
@@ -37,9 +37,9 @@ if (!(Test-Path $BuildDir)) { New-Item -ItemType Directory -Path $BuildDir | Out
 $ObjectFiles = @()
 
 # 1. Manejo del Manifiesto / Recursos
-if (Test-Path "resources.rc") {
+if (Test-Path "manifest/resources.rc") {
     Write-Log "Compiling resources..." "Warn"
-    & windres resources.rc -O coff -o "$BuildDir/resources.res"
+    & windres manifest/resources.rc -O coff -o "$BuildDir/resources.res"
     $ObjectFiles += "$BuildDir/resources.res"
 }
 
