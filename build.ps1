@@ -5,7 +5,7 @@ $BuildDir    = "obj"
 $BinDir      = "dist"
 $Output      = Join-Path $BinDir "UWP_Injector.exe"
 
-# Lista de fuentes (puedes usar rutas con subcarpetas)
+# Lista de fuentes
 $Sources = "Main.cpp", 
            "ProcessCheck/ProcessCheck.cpp", 
            "Inject/Inject.cpp",
@@ -16,8 +16,10 @@ $Sources = "Main.cpp",
            "ImGui/backend/imgui_impl_dx9.cpp",
            "ImGui/backend/imgui_impl_win32.cpp"
 
-# Configuración de compilación
-$Flags = "-O3", "-s", "-m64", "-march=x86-64", "-mwindows", "-std=c++17"
+# --- CAMBIO AQUÍ ---
+# Se agregan -static-libgcc -static-libstdc++ y -static para evitar dependencias de DLLs externas de MinGW
+$Flags = "-O3", "-s", "-m64", "-march=x86-64", "-mwindows", "-std=c++17", "-static-libgcc", "-static-libstdc++", "-static"
+
 $Includes = "-I.", "-I./ImGui", "-I./ImGui/backend"
 $Libs  = "-luser32", "-lcomdlg32", "-ladvapi32", "-lole32", "-lcomctl32", "-lgdi32", "-ld3d9", "-ldwmapi"
 
@@ -28,7 +30,7 @@ function Write-Log([string]$Msg, [string]$Type = "Info") {
 }
 
 Clear-Host
-Write-Log "Starting compilation of $ProjectName..." "Info"
+Write-Log "Starting compilation of $ProjectName (Static Build)..." "Info"
 
 # Crear directorios base
 if (!(Test-Path $BinDir)) { New-Item -ItemType Directory -Path $BinDir | Out-Null }
@@ -43,20 +45,16 @@ if (Test-Path "manifest/resources.rc") {
     $ObjectFiles += "$BuildDir/resources.res"
 }
 
-# 2. Compilación de Fuentes con creación de carpetas espejo
+# 2. Compilación de Fuentes
 foreach ($File in $Sources) {
     if (!(Test-Path $File)) {
-        Write-Log "File not found: $File" "Error" "no such file"
+        Write-Log "File not found: $File" "Error"
         continue
     }
 
-    # Limpiar ruta: quitar .\ inicial si existe
     $CleanPath = $File -replace "^\.\\", ""
-    
-    # Definir ruta del objeto (espejo de la estructura de fuentes)
     $ObjFile = Join-Path $BuildDir ($CleanPath -replace '\.cpp$', '.o')
     
-    # CRITICAL: Crear la subcarpeta dentro de 'obj' si no existe
     $TargetSubDir = Split-Path $ObjFile
     if (!(Test-Path $TargetSubDir)) {
         New-Item -ItemType Directory -Path $TargetSubDir | Out-Null
@@ -65,7 +63,6 @@ foreach ($File in $Sources) {
     $ObjectFiles += $ObjFile
     Write-Log "Compiling: $File" "Warn"
     
-    # Ejecutar G++
     & g++ -c $File -o $ObjFile $Flags $Includes
     if ($LASTEXITCODE -ne 0) {
         Write-Log "Fatal error in $File" "Error"
@@ -73,8 +70,8 @@ foreach ($File in $Sources) {
     }
 }
 
-# 3. Linker (Vinculación)
-Write-Log "Vinculando ejecutable final: $Output" "Link"
+# 3. Linker
+Write-Log "Vinculando ejecutable final (Static): $Output" "Link"
 & g++ -o $Output $ObjectFiles $Flags $Libs
 
 if ($LASTEXITCODE -eq 0) {
@@ -83,7 +80,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "----------------------------------"
     Write-Host "Binary: $Output"
     Write-Host "Size:  $Size KB"
-    Write-Host "Privileges: Administrator (via Manifest)"
+    Write-Host "Note: All GCC/C++ dependencies are now embedded."
     Write-Host "----------------------------------"
 } else {
     Write-Log "Error generating executable." "Error"
